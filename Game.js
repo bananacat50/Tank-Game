@@ -1,10 +1,17 @@
+//import {Tank} from 'Tank.js'
+//import {TankHelper} from 'TankHelper.js'
+//import {Point} from 'Point.js'
+
 let mapSize = 10
 let gameSize = 600
 var margin = 50
 var mapWidth = gameSize - 2 * margin
 var map = []
 var lastTime = 0
-var myGlobalThis
+var globalTankHelper
+var hexWidth = 525 / (mapSize+0.5)
+var hexHeight = 453 / (mapSize+0.5)
+var tanks = []
 
 var config = {
 	type: Phaser.AUTO,
@@ -93,26 +100,20 @@ class HealthBar {
 
 function preload() {
 	this.load.crossOrigin = 'Anonymous'
-	this.load.image('hex', 'https://cook-consultants.com/hex.png')
-	this.load.spritesheet('tanks', 'https://cook-consultants.com/tanks_5.png', {frameWidth: 150, frameHeight: 210})
-	//    this.load.image('grass', 'green.png')
-	//    this.load.image('gray', 'gray.png')
-	//    this.load.image('black', 'black.png')
-	//    this.load.image('blue', 'blue.png')
-	//    this.load.image('red', 'red.png')
-	//    this.load.image('white', 'white.png')
-	//    this.load.image('heal', 'Heal.jpg')
+	this.load.image('hex', 'https://cook-consultants.com/assets/hex.png')
+	this.load.spritesheet('tanks', 'https://cook-consultants.com/assets/tanks_5.png', {frameWidth: 150, frameHeight: 210})
+	this.load.atlas('tankAtlas', 'https://cook-consultants.com/assets/tanks_5.png', 'https://cook-consultants.com/assets/TankFrames.json')
+	this.load.image('shot', 'https://cook-consultants.com/assets/shell-01.png')
+	this.load.text('program1', 'https://cook-consultants.com/assets/tank_program_1.txt')
 }
 
 function drawGrid() {
-	myGlobalThis.add.image(0, 0, 'tanks', 6).setOrigin(0, 0)
+	
 	var imageSize = 2*(this.config.width - (2*margin)) / (mapSize+0.5)
-	var hexWidth = 525 / (mapSize+0.5)
-	var hexHeight = 453 / (mapSize+0.5)
 	for (i = 0; i < mapSize; i++) {
 		for (j = 0; j < mapSize; j++) {
-			z = myGlobalThis.add.image(i * hexWidth + margin + hexWidth/2*(j%2), j * hexHeight + margin, 'hex')
-				.setOrigin(0, 0);
+			z = globalTankHelper.scene.add.image(i * hexWidth + margin + hexWidth/2*(j%2), j * hexHeight + margin, 'hex')
+				;
 			z.displayWidth = imageSize
 			z.displayHeight = imageSize
 		}
@@ -130,16 +131,25 @@ function createMap() {
 		}
 		map.push(a)
 	}
+	return map
 }
 
 function create() {
-	myGlobalThis = this
-	createMap()
+	globalTankHelper = new TankHelper(mapSize, gameSize, margin, mapWidth, hexWidth, hexHeight, this)
+	globalTankHelper.map = createMap()
+	globalTankHelper.interpret()
 	drawGrid()
+	tank1 = new Tank(new Point(0, 0), globalTankHelper.scene.add.image(0, 0, 'tankAtlas', 'redTank').setScale(1/4), globalTankHelper, 0, globalTankHelper.scene)
+	tank2 = new Tank(new Point(14, 9), globalTankHelper.scene.add.image(0, 0, 'tankAtlas', 'redTank').setScale(1/4), globalTankHelper, 3, globalTankHelper.scene)
+	tanks.push(tank1)
+	tanks.push(tank2)
 }
-
+var a = 1
 function update(t) {
-	if (t > lastTime + 300) {
+	if (t > lastTime + 500) {
 		lastTime = t
+		tank1.run()
+		tank2.run()
+		Tank.updateShots()
 	}
 }
